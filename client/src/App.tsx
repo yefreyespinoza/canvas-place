@@ -184,14 +184,14 @@ export default function App() {
           ok
         </button>
         <div className="colors-selected">
-          {/* {colorsSelected.map((item, i) => {
+          {colorsSelected.map((item, i) => {
             return (
               <button
                 className="button"
                 style={{ backgroundColor: item }}
               ></button>
             );
-          })} */}
+          })}
         </div>
       </div>
     </div>

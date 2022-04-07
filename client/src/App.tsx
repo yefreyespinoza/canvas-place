@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./App.css";
-interface Pixeles {
+import { AppContext } from "./context/AppContext";
+interface Pixel {
   x: number;
   y: number;
   color: string;
@@ -30,7 +31,8 @@ const useKey = (key: string, cb: () => void) => {
 };
 
 export default function App() {
-  const [pixeles, setPixeles] = useState<Pixeles[]>([]);
+  const { socketApp } = useContext(AppContext);
+  const [pixeles, setPixeles] = useState<Pixel[]>([]);
   const [dimensions, setDimensions] = useState<{
     x: number;
     y: number;
@@ -48,14 +50,36 @@ export default function App() {
     color: "#000",
   });
   const setNewPixel = () => {
-    setPixeles([
-      ...pixeles,
-      {
-        x: selectionPixel.x,
-        y: selectionPixel.y,
-        color: selectionPixel.color,
-      },
-    ]);
+    // let findPixel = pixeles.find(
+    //   (item) => item.x === selectionPixel.x && item.y === selectionPixel.y
+    // );
+    socketApp.emit("coordinate", {
+      x: selectionPixel.x,
+      y: selectionPixel.y,
+      color: selectionPixel.color,
+    });
+    // if (findPixel) {
+    //   setPixeles(
+    //     pixeles.map((item) => {
+    //       if (item.x === selectionPixel.x && item.y === selectionPixel.y) {
+    //         return {
+    //           ...item,
+    //           color: selectionPixel.color,
+    //         };
+    //       }
+    //       return item;
+    //     })
+    //   );
+    // } else {
+    //   setPixeles([
+    //     ...pixeles,
+    //     {
+    //       x: selectionPixel.x,
+    //       y: selectionPixel.y,
+    //       color: selectionPixel.color,
+    //     },
+    //   ]);
+    // }
   };
   useKey("Enter", setNewPixel);
 
@@ -80,6 +104,40 @@ export default function App() {
     });
   };
 
+  useEffect(() => {
+    socketApp.on("coordinate", (dt) => {
+      console.log(dt);
+      let findPixel = pixeles.find(
+        (item) => item.x === dt.x && item.y === dt.y
+      );
+      if (findPixel) {
+        setPixeles(
+          pixeles.map((item) => {
+            if (item.x === dt.x && item.y === dt.y) {
+              return {
+                ...item,
+                color: dt.color,
+              };
+            }
+            return item;
+          })
+        );
+      } else {
+        setPixeles([
+          ...pixeles,
+          {
+            x: dt.x,
+            y: dt.y,
+            color: dt.color,
+          },
+        ]);
+      }
+    });
+    return () => {
+      socketApp.off("coordinate");
+    };
+  }, [pixeles, socketApp]);
+
   return (
     <div className="App">
       <div className="dimensions-info">
@@ -92,7 +150,7 @@ export default function App() {
           {dimensions.y}
         </span>
       </div>
-      <div className="canvas">
+      <div className="canvas-container">
         <div id="div-canvas">
           <div className="canvas-reference" onClick={onMouseHandler}></div>
           <svg id="canvas" width={1000} height={500} viewBox="0 0 1000 500">

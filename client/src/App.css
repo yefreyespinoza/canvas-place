@@ -17,8 +17,7 @@
   width: 1000px;
   height: 500px;
   position: relative;
-  margin: auto auto;
-  margin: 50px;
+  margin: 100px;
 }
 .canvas-reference {
   position: absolute;
@@ -30,7 +29,9 @@
   height: calc(100vh -120px);
   flex: 1;
   background-color: #111;
-  overflow: auto;
+  overflow-x: scroll;
+  overflow-y: scroll;
+  position: relative;
 }
 .options {
   height: 70px;

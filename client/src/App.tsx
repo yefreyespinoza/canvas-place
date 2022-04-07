@@ -32,6 +32,7 @@ const useKey = (key: string, cb: () => void) => {
 
 export default function App() {
   const { socketApp } = useContext(AppContext);
+  const [colorsSelected, setColorsSelected] = useState<string[]>([]);
   const [pixeles, setPixeles] = useState<Pixel[]>([]);
   const [dimensions, setDimensions] = useState<{
     x: number;
@@ -45,41 +46,16 @@ export default function App() {
     y: number;
     color: string;
   }>({
-    x: 0,
-    y: 0,
+    x: -10,
+    y: -10,
     color: "#000",
   });
   const setNewPixel = () => {
-    // let findPixel = pixeles.find(
-    //   (item) => item.x === selectionPixel.x && item.y === selectionPixel.y
-    // );
     socketApp.emit("coordinate", {
       x: selectionPixel.x,
       y: selectionPixel.y,
       color: selectionPixel.color,
     });
-    // if (findPixel) {
-    //   setPixeles(
-    //     pixeles.map((item) => {
-    //       if (item.x === selectionPixel.x && item.y === selectionPixel.y) {
-    //         return {
-    //           ...item,
-    //           color: selectionPixel.color,
-    //         };
-    //       }
-    //       return item;
-    //     })
-    //   );
-    // } else {
-    //   setPixeles([
-    //     ...pixeles,
-    //     {
-    //       x: selectionPixel.x,
-    //       y: selectionPixel.y,
-    //       color: selectionPixel.color,
-    //     },
-    //   ]);
-    // }
   };
   useKey("Enter", setNewPixel);
 
@@ -88,7 +64,6 @@ export default function App() {
   };
 
   const onMouseHandler = (e: any) => {
-    console.log("clicked");
     let cPosition = e.target.getBoundingClientRect();
     let x = redondearAMultiplosDe5(e.clientX - cPosition.x) - 5;
     let y = redondearAMultiplosDe5(e.clientY - cPosition.y) - 5;
@@ -103,10 +78,16 @@ export default function App() {
       color: selectionPixel.color,
     });
   };
-
+  useEffect(() => {
+    socketApp.on("coordinates", (dt: Pixel[]) => {
+      setPixeles(dt);
+    });
+    return () => {
+      socketApp.off("coordinates");
+    };
+  }, [socketApp]);
   useEffect(() => {
     socketApp.on("coordinate", (dt) => {
-      console.log(dt);
       let findPixel = pixeles.find(
         (item) => item.x === dt.x && item.y === dt.y
       );
@@ -185,6 +166,8 @@ export default function App() {
         <input
           type="color"
           onChange={(e) => {
+            if (colorsSelected.length < 10)
+              setColorsSelected([...colorsSelected, e.target.value]);
             setSelectionPixel({
               ...selectionPixel,
               color: e.target.value,
@@ -200,7 +183,16 @@ export default function App() {
         >
           ok
         </button>
-        <div className="colors-selected"></div>
+        <div className="colors-selected">
+          {/* {colorsSelected.map((item, i) => {
+            return (
+              <button
+                className="button"
+                style={{ backgroundColor: item }}
+              ></button>
+            );
+          })} */}
+        </div>
       </div>
     </div>
   );

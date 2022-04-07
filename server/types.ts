@@ -1,8 +1,5 @@
-export interface Coordinate {
+export interface CoordinateI {
   x: string;
   y: string;
   color: string;
-}
-export interface CoordinatesI {
-  coordinates: Coordinate[];
 }
